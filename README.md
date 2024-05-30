@@ -1,7 +1,7 @@
 # Cipherlock
 An IoT lockbox for hybrid scavenger hunts.
 
-Player and admin UI are not part of this project. They are developed individually and use the provided endpoints. For an example, see [here](https://github.com/SilasBerger/teaching-website/compare/main...feature/cipherlock).
+Player and admin UI are not part of this project. They are developed individually and use the provided endpoints. For an example, see [here](https://github.com/SilasBerger/teaching-website/commit/f5c40b2342449428e8e8dd0f3435fca2e8e3030c).
 
 ## Expected components to be implemented
 - `lockbox`
