@@ -1,7 +1,9 @@
 # Cipherlock
 An IoT lockbox for hybrid scavenger hunts.
 
-## Expected components
+Player and admin UI are not part of this project. They are developed individually and use the provided endpoints. For an example, see [here](https://github.com/SilasBerger/teaching-website/compare/main...feature/cipherlock).
+
+## Expected components to be implemented
 - `lockbox`
   - lockbox driver
   - controls servo to unlock box
@@ -17,17 +19,7 @@ An IoT lockbox for hybrid scavenger hunts.
   - keeps track of lockbox heartbeats (which boxes are online?)
   - connected to lora-gateway via WebSocket
   - probably has an API key that is required for the admin UI and for the lockboxes
-- `player-ui`
-  - fetches question from game server and presents it to the player
-  - either has a QR code scanner or a route per question
-  - sends question check / unlock request to game server via HTTP or WebSocket
-  - receives question check / unlock feedback
-  - possibly stores correct answers for repeated unlock
-- `admin-ui`
-  - define questions and question <-> lockbox mappings
-  - check game server status
-  - check lora gateway status
-  - check online status for expected boxes
+  - possibly has a concept of player teams and points (awarded for fast answers, small number of tries, etc.)
 - `lora-gateway-config-utility`
   - CLI or simple UI
   - configure WiFi
