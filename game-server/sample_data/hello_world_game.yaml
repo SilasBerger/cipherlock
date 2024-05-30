@@ -1,0 +1,35 @@
+title: Hello World Game
+caches:
+  - lockbox_id: lb12345
+    question:
+      title: First line of a new program
+      description: What friendly line do programmers commonly print to the command line first, when setting up a new program?
+      textfield_answer:
+        match_case: false
+        accepted_answers:
+          - hello world
+          - hello, world
+          - hello world!
+          - hello, world!
+  - lockbox_id: lb9876
+    question:
+      title: Printing that first line
+      description: |
+        On your journey to this next cache, you have learned the fundamentals of the Python programming language.
+        Now, remember how programmers usually start a new program by printing the string `Hello, world!` to the command
+        line.
+        
+        How do we do that in Python? Select the correct answer!
+      single_choice_answer:
+        random_order: true
+        answers:
+          - text: `print Hello, world!`
+            correct: false
+          - text: print("Hello, world!")
+            correct: true
+          - text: print('Hello, world!')
+            correct: true
+          - text: "Hello, world!".print()
+            correct: false
+          - text: print -> "Hello, world!"
+            correct: false
