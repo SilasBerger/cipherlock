@@ -5,12 +5,22 @@ import {Server} from 'socket.io';
 import * as http from "http";
 
 const PORT = 3099;
+const API_KEY = 'key1234';
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: '*',
+  }
+});
+
+io.use((socket, next) => {
+  console.log(socket.request.headers);
+  if (socket.request.headers.apikey === API_KEY) {
+    next();
+  } else {
+    next(new Error('Invalid API key'));
   }
 });
 
