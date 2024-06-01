@@ -3,9 +3,17 @@ import * as fs from "fs";
 import yaml from 'js-yaml';
 import {Server} from 'socket.io';
 import * as http from "http";
+import bodyParser from "body-parser";
+import {BehaviorSubject} from "rxjs";
+import {GameSpec} from "./model";
+import {AdminObserver} from "./admin";
 
 const PORT = 3099;
 const API_KEY = 'key1234';
+
+const $gameSpec = new BehaviorSubject<GameSpec | null>(null);
+
+const adminObservers: AdminObserver[] = [];
 
 const app = express();
 const server = http.createServer(app);
@@ -15,8 +23,9 @@ const io = new Server(server, {
   }
 });
 
+app.use(bodyParser.text({type: 'application/yaml'}));
+
 io.use((socket, next) => {
-  console.log(socket.request.headers);
   if (socket.request.headers.apikey === API_KEY) {
     next();
   } else {
@@ -24,23 +33,26 @@ io.use((socket, next) => {
   }
 });
 
-io.on('connection', () => {
-  console.log('Client connected to socket.io');
-});
+io.on('connection', socket => {
+  const observer = new AdminObserver(socket, $gameSpec);
+  adminObservers.push(observer);
 
-const doc = yaml.load(fs.readFileSync('sample_data/hello_world_game.yaml', 'utf8'));
-
-app.get('/question/:id', (req, res) => {
-  res.send(`This is question ${req.params.id}.`);
-});
-
-app.post('/question/:id', (req, res) => {
-  res.status(501);
-  res.send();
+  socket.on('disconnect', () => {
+    adminObservers.splice(adminObservers.indexOf(observer), 1);
+  });
 });
 
 app.post('/game', (req, res) => {
-  res.status(501);
+  if (!req.is('application/yaml')) {
+    res.status(400);
+    res.send('Bad type: Payload must be application/yaml.');
+    return;
+  }
+
+  const gameSpec: GameSpec = yaml.load(req.body) as GameSpec;
+  $gameSpec.next(gameSpec);
+
+  res.status(204);
   res.send();
 });
 

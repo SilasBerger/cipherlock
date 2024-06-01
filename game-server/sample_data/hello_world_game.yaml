@@ -1,18 +1,22 @@
-game_id: Hello World Game
-game_description: This is not the greatest game in the world. This is just a tribute.
+gameId: Hello World Game
+gameDescription: This is not the greatest game in the world. This is just a tribute.
 caches:
-  - lockbox_id: lb12345
+  - lockboxId: lb12345
     description: Enter some form of "Hello, world!"
-    text_answer:
-      match_case: false
-      accepted_answers:
-        - hello world
-        - hello, world
-        - hello world!
-        - hello, world!
-  - lockbox_id: lb9876
+    answer:
+      type: TextAnswer
+      spec:
+        matchCase: false
+        acceptedAnswers:
+          - hello world
+          - hello, world
+          - hello world!
+          - hello, world!
+  - lockboxId: lb9876
     description: Select one of the two correct print statements
-    single_choice_answer:
-      correct_answer_keys:
-        - answer1
-        - answer2
+    answer:
+      type: SingleChoiceAnswer
+      spec:
+        correctAnswer:
+          - answer1
+          - answer2
