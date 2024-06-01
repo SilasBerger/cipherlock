@@ -1,12 +1,11 @@
 import express from 'express';
-import * as fs from "fs";
-import yaml from 'js-yaml';
 import {Server} from 'socket.io';
 import * as http from "http";
 import bodyParser from "body-parser";
 import {BehaviorSubject} from "rxjs";
 import {GameSpec} from "./model";
 import {AdminObserver} from "./admin";
+import cors from 'cors';
 
 const PORT = 3099;
 const API_KEY = 'key1234';
@@ -23,7 +22,8 @@ const io = new Server(server, {
   }
 });
 
-app.use(bodyParser.text({type: 'application/yaml'}));
+app.use(cors());
+app.use(bodyParser.json({type: 'application/json'}));
 
 io.use((socket, next) => {
   if (socket.request.headers.apikey === API_KEY) {
@@ -43,13 +43,13 @@ io.on('connection', socket => {
 });
 
 app.post('/game', (req, res) => {
-  if (!req.is('application/yaml')) {
+  if (!req.is('application/json')) {
     res.status(400);
-    res.send('Bad type: Payload must be application/yaml.');
+    res.send('Bad type: Payload must be application/json.');
     return;
   }
 
-  const gameSpec: GameSpec = yaml.load(req.body) as GameSpec;
+  const gameSpec: GameSpec = req.body as GameSpec;
   $gameSpec.next(gameSpec);
 
   res.status(204);
