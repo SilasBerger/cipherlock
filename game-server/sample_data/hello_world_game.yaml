@@ -1,7 +1,8 @@
 gameId: Hello World Game
 gameDescription: This is not the greatest game in the world. This is just a tribute.
 caches:
-  - lockboxId: lb12345
+  - questionId: 07c790f8-7e3f-4d3e-b870-3283fa5b08a4
+    lockboxId: lb12345
     description: Enter some form of "Hello, world!"
     answer:
       type: TextAnswer
@@ -12,7 +13,8 @@ caches:
           - hello, world
           - hello world!
           - hello, world!
-  - lockboxId: lb9876
+  - questionId: 403ee8e7-d6aa-4b98-9d1e-1625ac7e2b42
+    lockboxId: lb9876
     description: Select one of the two correct print statements
     answer:
       type: SingleChoiceAnswer

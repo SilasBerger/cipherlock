@@ -9,7 +9,6 @@ export class AdminObserver {
 
   _subscribeToGameSpec($gameSpec: Observable<GameSpec | null>) {
     $gameSpec.pipe(
-      tap(spec => console.log({tag: 'sendingUpdate', spec})),
       tap(spec => this._socket.emit('gameSpecUpdated', spec)),
     ).subscribe();
   }
