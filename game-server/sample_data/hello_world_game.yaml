@@ -1,5 +1,6 @@
 gameId: Hello World Game
 gameDescription: This is not the greatest game in the world. This is just a tribute.
+requireKnownPlayers: true
 caches:
   - questionId: 07c790f8-7e3f-4d3e-b870-3283fa5b08a4
     lockboxId: lb12345

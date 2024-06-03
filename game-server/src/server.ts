@@ -3,7 +3,14 @@ import {Server} from 'socket.io';
 import * as http from "http";
 import bodyParser from "body-parser";
 import {BehaviorSubject, tap} from "rxjs";
-import {AnswerCheckRequest, CheckInRequest, OnboardingResponse, GameSpec, OnboardingRequest} from "./model";
+import {
+  AnswerCheckRequest,
+  CheckInRequest,
+  OnboardingResponse,
+  GameSpec,
+  OnboardingRequest,
+  CheckInResponse
+} from "./model";
 import {AdminObserver} from "./admin";
 import cors from 'cors';
 import {Game} from "./game";
@@ -114,21 +121,45 @@ app.post('/onboard', (req, res) => {
 
 app.post('/checkIn', (req, res) => {
   const checkInRequest = req.body as CheckInRequest;
-  /*
-  if (!activeGame) {
-    fail, invalid state
+
+  if (!activeGame || activeGame.gameId !== checkInRequest.gameId) {
+    res.status(409);
+    res.json({
+      gameId: activeGame?.gameId || undefined,
+    } as CheckInResponse);
+    return;
   }
 
-  if (checkInRequest !== activeGame.gameId || !game.hasPlayer(checkInRequest.playerId)) {
-    200; check-in result: failure
+  const playerIdValid = !activeGame.requiresKnownPlayers || activeGame.hasPlayerId(checkInRequest.playerId)
+  if (!playerIdValid) {
+    res.status(409);
+    res.json({
+      gameId: activeGame.gameId,
+      playerIdValid: false,
+    } as CheckInResponse);
+  } else {
+    res.status(200);
+    res.json({
+      gameId: activeGame.gameId,
+      playerIdValid: true,
+    } as CheckInResponse);
   }
-
-  200: check-in result: success
-   */
 });
 
 app.post('/checkAnswer', (req, res) => {
   const answerCheckRequest = req.body as AnswerCheckRequest;
+  /*
+  - check if game active
+  - check if correct gameId
+  - of known players required, check if id is known
+  - game / question checker needs to have a "veto" (not just true/false for correct/incorrect)
+    - handle unknown player (throw exception; should be checked before?)
+    - check if question with questionId exists
+    - have answer checked for correctness
+    - have points awarded if correct (consider first try, second try, ...)
+  - have box opened if correct
+  - give feedback (correctness, points, unknown player, incorrect gameId, ...)
+   */
 });
 
 server.listen(PORT, () => {

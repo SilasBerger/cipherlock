@@ -18,12 +18,14 @@ export class Game {
     return this._gameSpec.gameId;
   }
 
-  /*
-  - Count points per player
-  - Store answer specs with questionIds
-  - Have question checkers, associated with quesitonId
-   */
+  get requiresKnownPlayers(): boolean {
+    return this._gameSpec.requireKnownPlayers;
+  }
+
   hasPlayerName(playerName: string) {
+    if (!playerName) {
+      return false;
+    }
     return Object.values(this.players).some(player => player.name == playerName);
   }
 
@@ -33,12 +35,19 @@ export class Game {
     }
 
     const playerId = crypto.randomUUID();
-    const player: Player = {
+    this.players[playerId] = {
       id: playerId,
       name: playerName,
       points: 0,
-    }
+    };
 
     return playerId;
+  }
+
+  hasPlayerId(playerId?: string) {
+    if (!playerId) {
+      return false;
+    }
+    return Object.keys(this.players).includes(playerId);
   }
 }
