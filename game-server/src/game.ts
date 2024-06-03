@@ -1,5 +1,14 @@
-import {GameSpec} from "./model";
+import {
+  Answer,
+  AnswerCheckResult,
+  AnswerDefinition,
+  AnswerType,
+  GameSpec,
+  SingleChoiceAnswerSpec, SingleChoiceAnswer,
+  TextAnswerSpec, TextAnswer
+} from "./model";
 import * as crypto from "crypto";
+import {checkSingleChoiceAnswer, checkTextAnswer} from "./answer-checker";
 
 interface Player {
   id: string;
@@ -9,10 +18,13 @@ interface Player {
 
 export class Game {
 
-  private players: { [key: string]: Player; } = {};
+  private readonly _players: { [key: string]: Player; } = {};
+  private readonly _answerDefinitions: { [key: string]: AnswerDefinition; } = {};
 
   constructor(private _gameSpec: GameSpec) {
-
+    _gameSpec.caches.forEach(cache => {
+      this._answerDefinitions[cache.questionId] = cache.answer;
+    });
   }
 
   get gameId(): string {
@@ -27,7 +39,7 @@ export class Game {
     if (!playerName) {
       return false;
     }
-    return Object.values(this.players).some(player => player.name == playerName);
+    return Object.values(this._players).some(player => player.name == playerName);
   }
 
   addPlayer(playerName: string): string {
@@ -36,7 +48,7 @@ export class Game {
     }
 
     const playerId = crypto.randomUUID();
-    this.players[playerId] = {
+    this._players[playerId] = {
       id: playerId,
       name: playerName,
       points: 0,
@@ -49,6 +61,28 @@ export class Game {
     if (!playerId) {
       return false;
     }
-    return Object.keys(this.players).includes(playerId);
+    return Object.keys(this._players).includes(playerId);
+  }
+
+  hasQuestion(questionId: string): boolean {
+    if (!questionId) {
+      return false;
+    }
+
+    return Object.keys(this._answerDefinitions).includes(questionId);
+  }
+
+  checkAnswer(questionId: string, answer: Answer): AnswerCheckResult {
+    if (!this.hasQuestion(questionId)) {
+      throw new Error(`No answer definition for questionId ${questionId}. This should have been checked beforehand.`);
+    }
+
+    const answerDefinition = this._answerDefinitions[questionId];
+    switch (answerDefinition.type) {
+      case AnswerType.TextAnswer:
+        return checkTextAnswer(answerDefinition.spec as TextAnswerSpec, answer as TextAnswer);
+      case AnswerType.SingleChoice:
+        return checkSingleChoiceAnswer(answerDefinition.spec as SingleChoiceAnswerSpec, answer as SingleChoiceAnswer);
+    }
   }
 }

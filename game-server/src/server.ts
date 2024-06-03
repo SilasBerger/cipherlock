@@ -9,7 +9,7 @@ import {
   OnboardingErrorResponse,
   GameSpec,
   OnboardingRequest,
-  CheckInResponse, OnboardingSuccessResponse
+  CheckInResponse, OnboardingSuccessResponse, AnswerCheckErrorResponse
 } from "./model";
 import {AdminObserver} from "./admin";
 import cors from 'cors';
@@ -143,20 +143,30 @@ app.post('/checkIn', (req, res) => {
 });
 
 app.post('/checkAnswer', (req, res) => {
+  if (!activeGame) {
+    res.status(409);
+    res.send('No game active.');
+    return;
+  }
+
   const answerCheckRequest = req.body as AnswerCheckRequest;
 
-  /*
-  - check if game active
-  - check if correct gameId
-  - of known players required, check if id is known
-  - game / question checker needs to have a "veto" (not just true/false for correct/incorrect)
-    - handle unknown player (throw exception; should be checked before?)
-    - check if question with questionId exists
-    - have answer checked for correctness
-    - have points awarded if correct (consider first try, second try, ...)
-  - have box opened if correct
-  - give feedback (correctness, points, unknown player, incorrect gameId, ...)
-   */
+  const gameIdValid = activeGame.gameId === answerCheckRequest.gameId;
+  const playerIdValid = !activeGame.requiresKnownPlayers || activeGame.hasPlayerId(answerCheckRequest.playerId);
+  const questionIdValid = activeGame.hasQuestion(answerCheckRequest.questionId);
+  if (!gameIdValid || !playerIdValid || !questionIdValid) {
+    res.status(409);
+    res.send({gameIdValid, playerIdValid, questionIdValid} as AnswerCheckErrorResponse);
+  }
+
+  const result = activeGame.checkAnswer(answerCheckRequest.questionId, answerCheckRequest.answer);
+
+  if (result.correct) {
+    // TODO: Have box unlocked.
+  }
+
+  res.status(200);
+  res.json(result);
 });
 
 server.listen(PORT, () => {

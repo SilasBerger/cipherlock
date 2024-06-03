@@ -33,25 +33,13 @@ export interface GameSpec {
   caches: Cache[];
 }
 
-export interface AnswerCheckRequest {
-  gameId: string;
-  questionId: string;
-  playerId?: string;
-  answer: Answer;
-}
+export type Answer = TextAnswer | SingleChoiceAnswer;
 
-export interface Answer {
-  type: AnswerType;
-  value: AnswerValue;
-}
-
-export type AnswerValue = TextAnswerValue | SingleChoiceAnswerValue;
-
-export interface TextAnswerValue {
+export interface TextAnswer {
   text: string;
 }
 
-export interface SingleChoiceAnswerValue {
+export interface SingleChoiceAnswer {
   choice: string;
 }
 
@@ -80,4 +68,21 @@ export interface CheckInResponse {
   gameIdValid: boolean;
   playerIdValid: boolean; /* undefined if no game active or gameId does not match */
   success: boolean;
+}
+
+export interface AnswerCheckRequest {
+  gameId: string;
+  questionId: string;
+  playerId?: string;
+  answer: Answer;
+}
+
+export interface AnswerCheckErrorResponse {
+  gameIdValid: boolean;
+  playerIdValid: boolean;
+  questionIdValid: boolean;
+}
+
+export interface AnswerCheckResult {
+  correct: boolean;
 }
