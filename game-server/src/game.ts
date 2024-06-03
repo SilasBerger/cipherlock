@@ -1,4 +1,5 @@
 import {GameSpec} from "./model";
+import * as crypto from "crypto";
 
 interface Player {
   id: string;

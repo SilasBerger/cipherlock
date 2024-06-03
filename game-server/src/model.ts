@@ -60,10 +60,14 @@ export interface OnboardingRequest {
   playerName: string;
 }
 
-export interface OnboardingResponse {
-  gameId?: string /* undefined if no game active */
-  playerNameAvailable: boolean; /* undefined if no game active */
-  playerId?: string; /* undefined if request fails */
+export interface OnboardingErrorResponse {
+  gameActive: boolean;
+  gameIdValid: boolean;
+  playerNameAvailable: boolean;
+}
+
+export interface OnboardingSuccessResponse {
+  playerId: string;
 }
 
 export interface CheckInRequest {
@@ -72,6 +76,7 @@ export interface CheckInRequest {
 }
 
 export interface CheckInResponse {
-  gameId?: string; /* undefined if no game active */
-  playerIdValid?: boolean; /* undefined if no game active or gameId does not match */
+  gameIdValid: boolean;
+  playerIdValid: boolean; /* undefined if no game active or gameId does not match */
+  success: boolean;
 }

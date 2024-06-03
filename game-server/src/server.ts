@@ -6,10 +6,10 @@ import {BehaviorSubject, tap} from "rxjs";
 import {
   AnswerCheckRequest,
   CheckInRequest,
-  OnboardingResponse,
+  OnboardingErrorResponse,
   GameSpec,
   OnboardingRequest,
-  CheckInResponse
+  CheckInResponse, OnboardingSuccessResponse
 } from "./model";
 import {AdminObserver} from "./admin";
 import cors from 'cors';
@@ -25,13 +25,13 @@ let activeGame: Game | null = null;
 
 $gameSpec.asObservable().pipe(
   tap(spec => {
-    if (spec) {
+    if (!!spec) {
       activeGame = new Game(spec);
     } else {
       activeGame = null;
     }
   }),
-);
+).subscribe();
 
 const app = express();
 const server = http.createServer(app);
@@ -49,7 +49,6 @@ function pathSegments(path: string): string[] {
 }
 
 app.use((req, res, next) => {
-  console.log(req.headers);
   if (pathSegments(req.path)[0] === 'admin' && req.headers.apikey !== API_KEY) {
     res.status(401);
     res.send();
@@ -93,19 +92,15 @@ app.post('/admin/game', (req, res) => {
 app.post('/onboard', (req, res) => {
   const onboardingRequest = req.body as OnboardingRequest;
 
-  if (!activeGame) {
-    res.status(409);
-    res.json({} as OnboardingResponse);
-    return;
-  }
-
-  const playerNameAvailable = !activeGame.hasPlayerName(onboardingRequest.playerName);
-  if (activeGame.gameId !== onboardingRequest.gameId || !playerNameAvailable) {
+  const gameIdValid = activeGame?.gameId === onboardingRequest.gameId;
+  const playerNameAvailable = !activeGame?.hasPlayerName(onboardingRequest.playerName);
+  if (!activeGame || !gameIdValid || !playerNameAvailable) {
     res.status(409);
     res.json({
-      gameId: activeGame.gameId,
+      gameActive: !!activeGame,
+      gameIdValid: gameIdValid,
       playerNameAvailable: playerNameAvailable,
-    } as OnboardingResponse);
+    } as OnboardingErrorResponse);
     return;
   }
 
@@ -113,37 +108,28 @@ app.post('/onboard', (req, res) => {
 
   res.status(200);
   res.json({
-    gameId: activeGame.gameId,
-    playerNameAvailable: playerNameAvailable,
     playerId: playerId,
-  } as OnboardingResponse);
+  } as OnboardingSuccessResponse);
 });
 
 app.post('/checkIn', (req, res) => {
   const checkInRequest = req.body as CheckInRequest;
 
-  if (!activeGame || activeGame.gameId !== checkInRequest.gameId) {
+  if (!activeGame) {
     res.status(409);
-    res.json({
-      gameId: activeGame?.gameId || undefined,
-    } as CheckInResponse);
+    res.send('No game active.');
     return;
   }
 
-  const playerIdValid = !activeGame.requiresKnownPlayers || activeGame.hasPlayerId(checkInRequest.playerId)
-  if (!playerIdValid) {
-    res.status(409);
-    res.json({
-      gameId: activeGame.gameId,
-      playerIdValid: false,
-    } as CheckInResponse);
-  } else {
-    res.status(200);
-    res.json({
-      gameId: activeGame.gameId,
-      playerIdValid: true,
-    } as CheckInResponse);
-  }
+  const gameIdValid = activeGame.gameId === checkInRequest.gameId;
+  const playerIdValid = !activeGame.requiresKnownPlayers || activeGame.hasPlayerId(checkInRequest.playerId);
+
+  res.status(200);
+  res.json({
+    gameIdValid: gameIdValid,
+    playerIdValid: playerIdValid,
+    success: gameIdValid && playerIdValid,
+  } as CheckInResponse);
 });
 
 app.post('/checkAnswer', (req, res) => {
