@@ -20,7 +20,8 @@ Player and admin UI are not part of this project. They are developed individuall
   - connected to lora-gateway via WebSocket
   - probably has an API key that is required for the admin UI and for the lockboxes
   - possibly has a concept of player teams and points (awarded for fast answers, small number of tries, etc.)
-- `lora-gateway-config-utility`
-  - CLI or simple UI
+- `device-utility`
+  - shell or simple UI
   - configure WiFi
-  - configure game server IP
+  - configure game server IP and API key
+  - checks and diagnostics

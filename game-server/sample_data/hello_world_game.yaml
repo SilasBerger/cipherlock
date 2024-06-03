@@ -1,15 +1,15 @@
-gameId: Hello World Game
-gameDescription: This is not the greatest game in the world. This is just a tribute.
-requireKnownPlayers: true
-caches:
-  - questionId: 07c790f8-7e3f-4d3e-b870-3283fa5b08a4
-    lockboxId: lb12345
-    description: Enter some form of "Hello, world!"
-    answer:
-      type: TextAnswer
-      spec:
-        matchCase: false
-        acceptedAnswers:
+gameId: hello_world_game # Clients use this gameId to verify that the correct game is active.
+gameDescription: This is not the greatest game in the world. This is just a tribute. # Human-readable description.
+requireKnownPlayers: true # If true, players must provide a known playerId (obtained through the /onboard checkpoint) when checking an answer.
+caches: # Array of all available lockboxes (i.e. "caches").
+  - questionId: 07c790f8-7e3f-4d3e-b870-3283fa5b08a4 # Used for matching answer checking requests to the correct answer spec.
+    lockboxId: lb12345 # Identifier of the lockbox to be unlocked upon correct answer.
+    description: Enter some form of "Hello, world!" # Human-readable description of this question / cache.
+    answer: # Answer specification object.
+      type: TextAnswer # Any of: TextAnswer, SingleChoiceAnswer.
+      spec: # Type-specific answer specification object.
+        matchCase: false # If true, answer matching is case-sensitive.
+        acceptedAnswers: # Array of accepted answer strings; a correct answer exactly matches one of these strings.
           - hello world
           - hello, world
           - hello world!
@@ -20,6 +20,6 @@ caches:
     answer:
       type: SingleChoiceAnswer
       spec:
-        correctAnswer:
+        correctAnswer: # Array of correct answers; e.g. single choice option IDs.
           - answer1
           - answer2
