@@ -17,8 +17,8 @@ import {Game} from "./game";
 import * as fs from "fs";
 import yaml from "js-yaml";
 
-const PORT = 3099;
-const API_KEY = 'key1234';
+const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3099;
+const API_KEY = process.env.KEY || 'key1234';
 
 const $gameSpec = new BehaviorSubject<GameSpec | null>(null);
 

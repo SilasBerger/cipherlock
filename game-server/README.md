@@ -5,9 +5,11 @@
 - `ENV=dev yarn run start`
 
 ## Environment variables
-| Variable | Description                              |
-|----------|------------------------------------------|
-| `ENV`    | Set to `dev` for development environment |
+| Variable  | Description                                                                              |
+|-----------|------------------------------------------------------------------------------------------|
+| `ENV`     | If set `dev`, enables development environment; defaults to `undefined`.                  |
+| `PORT`    | Target port for the game server (REST and Websocket); must be `int`, defaults to `3099`. |
+| `API_KEY` | Server's API key for authenticated requests and connections; defaults to `key1234`.      |
 
 ## Endpoints
 ### /admin/game
