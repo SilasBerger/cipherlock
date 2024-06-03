@@ -64,6 +64,7 @@ export interface OnboardingErrorResponse {
   gameActive: boolean;
   gameIdValid: boolean;
   playerNameAvailable: boolean;
+  playerNameValid: boolean;
 }
 
 export interface OnboardingSuccessResponse {

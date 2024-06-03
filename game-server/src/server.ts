@@ -92,19 +92,22 @@ app.post('/admin/game', (req, res) => {
 app.post('/onboard', (req, res) => {
   const onboardingRequest = req.body as OnboardingRequest;
 
+  const playerName = onboardingRequest.playerName;
   const gameIdValid = activeGame?.gameId === onboardingRequest.gameId;
-  const playerNameAvailable = !activeGame?.hasPlayerName(onboardingRequest.playerName);
-  if (!activeGame || !gameIdValid || !playerNameAvailable) {
+  const playerNameAvailable = !activeGame?.hasPlayerName(playerName);
+  const playerNameValid = playerName.length >= 3 && playerName.length < 15;
+  if (!activeGame || !gameIdValid || !playerNameAvailable || !playerNameValid) {
     res.status(409);
     res.json({
       gameActive: !!activeGame,
       gameIdValid: gameIdValid,
       playerNameAvailable: playerNameAvailable,
+      playerNameValid: playerNameValid,
     } as OnboardingErrorResponse);
     return;
   }
 
-  const playerId = activeGame.addPlayer(onboardingRequest.playerName);
+  const playerId = activeGame.addPlayer(playerName);
 
   res.status(200);
   res.json({

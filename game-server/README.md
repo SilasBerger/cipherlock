@@ -51,7 +51,7 @@ Onboard a new player to the game.
 }
 ```
 
-***200 OK** \
+**200 OK** \
 ```typescript
 {
   playerId: string; /* The generated and registered playerId, potentially required in subsequent requests. */
@@ -64,6 +64,7 @@ Onboard a new player to the game.
   gameActive: boolean; /* Whether a game is currently active. */
   gameIdValid: boolean; /* Whether the provided gameId matches the currently active game's ID. Meaningless if gameActive is false.  */
   playerNameAvailable: boolean; /* Whether the provided playerName is available. Meaningless if gameActive is false. */
+  playerNameError: boolean; /* Whether the player name meets all requirements. */
 }
 ```
 
