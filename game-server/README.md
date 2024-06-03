@@ -1,4 +1,14 @@
 # game-server
+
+## Usage
+- `yarn install`
+- `ENV=dev yarn run start`
+
+## Environment variables
+| Variable | Description                              |
+|----------|------------------------------------------|
+| `ENV`    | Set to `dev` for development environment |
+
 ## Endpoints
 ### /admin/game
 **Authenticated**: Requires `apikey` header.

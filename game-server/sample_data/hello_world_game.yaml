@@ -1,6 +1,6 @@
 gameId: hello_world_game # Clients use this gameId to verify that the correct game is active.
 gameDescription: This is not the greatest game in the world. This is just a tribute. # Human-readable description.
-requireKnownPlayers: true # If true, players must provide a known playerId (obtained through the /onboard checkpoint) when checking an answer.
+requireKnownPlayers: false # If true, players must provide a known playerId (obtained through the /onboard checkpoint) when checking an answer.
 caches: # Array of all available lockboxes (i.e. "caches").
   - questionId: 07c790f8-7e3f-4d3e-b870-3283fa5b08a4 # Used for matching answer checking requests to the correct answer spec.
     lockboxId: lb12345 # Identifier of the lockbox to be unlocked upon correct answer.

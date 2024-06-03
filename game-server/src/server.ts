@@ -14,6 +14,8 @@ import {
 import {AdminObserver} from "./admin";
 import cors from 'cors';
 import {Game} from "./game";
+import * as fs from "fs";
+import yaml from "js-yaml";
 
 const PORT = 3099;
 const API_KEY = 'key1234';
@@ -43,6 +45,11 @@ const io = new Server(server, {
 
 app.use(cors());
 app.use(bodyParser.json({type: 'application/json'}));
+
+if (process.env.ENV === 'dev') {
+  const gameFile = fs.readFileSync('sample_data/hello_world_game.yaml', 'utf-8');
+  $gameSpec.next(yaml.load(gameFile) as GameSpec);
+}
 
 function pathSegments(path: string): string[] {
   return path.split('/').filter(segment => !!segment);
@@ -137,6 +144,7 @@ app.post('/checkIn', (req, res) => {
 
 app.post('/checkAnswer', (req, res) => {
   const answerCheckRequest = req.body as AnswerCheckRequest;
+
   /*
   - check if game active
   - check if correct gameId
