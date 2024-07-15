@@ -3,7 +3,7 @@ gameDescription: This is not the greatest game in the world. This is just a trib
 requireKnownPlayers: false # If true, players must provide a known playerId (obtained through the /onboard checkpoint) when checking an answer.
 caches: # Array of all available lockboxes (i.e. "caches").
   - questionId: 07c790f8-7e3f-4d3e-b870-3283fa5b08a4 # Used for matching answer checking requests to the correct answer spec.
-    lockboxId: lb12345 # Identifier of the lockbox to be unlocked upon correct answer.
+    lockboxId: 0 # Identifier of the lockbox to be unlocked upon correct answer (0-255)
     description: Enter some form of "Hello, world!" # Human-readable description of this question / cache.
     answer: # Answer specification object.
       type: TextAnswer # Any of: TextAnswer, SingleChoiceAnswer.
@@ -19,7 +19,7 @@ caches: # Array of all available lockboxes (i.e. "caches").
           - hallo, welt
           - hallo welt
   - questionId: 403ee8e7-d6aa-4b98-9d1e-1625ac7e2b42
-    lockboxId: lb9876
+    lockboxId: 1
     description: Select one of the two correct print statements
     answer:
       type: SingleChoiceAnswer
@@ -27,3 +27,12 @@ caches: # Array of all available lockboxes (i.e. "caches").
         correctAnswers: # Array of correct answers; e.g. single choice option IDs.
           - answer1
           - answer2
+  - questionId: 27ecdee1-dd8c-4d66-ae4f-50c79620e651
+    lockboxId: 255
+    description: What is the answer to life, the universe and everything?
+    answer:
+      type: TextAnswer
+      spec:
+        matchCase: false
+        acceptedAnswers:
+          - "42"
