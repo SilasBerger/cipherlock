@@ -1,6 +1,6 @@
 import time
 import network
-import secrets
+import config
 import asyncio
 import json
 from servo import Servo
@@ -22,7 +22,7 @@ def unlock():
 
 
 def handle_unlock_event(data):
-    if data["lockboxId"] == secrets.DEVICE_ID:
+    if data["lockboxId"] == config.DEVICE_ID:
         unlock()
 
 
@@ -34,7 +34,7 @@ def handle_event(event):
 async def observe_websocket_events():
     ws = AsyncWebsocketClient()
 
-    websocket_uri = f"{secrets.WEBSOCKET_CONNECTION_URL}?apiKey={secrets.SERVER_API_KEY}"
+    websocket_uri = f"{config.WEBSOCKET_CONNECTION_URL}?apiKey={config.SERVER_API_KEY}"
     print(f"Connecting to WebSocket server: {websocket_uri}")
     if not await ws.handshake(websocket_uri):
         raise Exception("An error occurred during WebSocket handshake")
@@ -48,7 +48,7 @@ async def observe_websocket_events():
 
 wifi = network.WLAN(network.STA_IF)
 wifi.active(1)
-wifi.connect(secrets.WIFI_SSID, secrets.WIFI_KEY)
+wifi.connect(config.WIFI_SSID, config.WIFI_KEY)
 
 while not wifi.isconnected():
     time.sleep(1)
