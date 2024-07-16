@@ -102,7 +102,7 @@ app.use(cors());
 app.use(bodyParser.json({type: 'application/json'}));
 
 if (process.env.ENV === 'dev') {
-  const gameFile = fs.readFileSync('sample_data/hello_world_game.yaml', 'utf-8');
+  const gameFile = fs.readFileSync('sample_data/demo_game.yaml', 'utf-8');
   $gameSpec.next(yaml.load(gameFile) as GameSpec);
 }
 

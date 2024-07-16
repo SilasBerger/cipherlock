@@ -11,12 +11,7 @@ IDLE_ANGLE = 140
 UNLOCK_ANGLE = 165
 UNLOCK_DURATION_S = 0.5
 
-wifi = network.WLAN(network.STA_IF)
-wifi.active(1)
-wifi.connect(secrets.WIFI_SSID, secrets.WIFI_KEY)
-
 lock = Servo(SERVO_PIN)
-
 lock.write(IDLE_ANGLE)
 
 
@@ -47,7 +42,15 @@ async def observe_websocket_events():
 
     while await ws.open():
         event = json.loads(await ws.recv())
+        print(event)
         handle_event(event)
 
+
+wifi = network.WLAN(network.STA_IF)
+wifi.active(1)
+wifi.connect(secrets.WIFI_SSID, secrets.WIFI_KEY)
+
+while not wifi.isconnected():
+    time.sleep(1)
 
 asyncio.run(observe_websocket_events())
