@@ -6,12 +6,11 @@ import json
 from servo import Servo
 from ws import AsyncWebsocketClient
 
-SERVO_PIN = 22
 IDLE_ANGLE = 140
 UNLOCK_ANGLE = 165
 UNLOCK_DURATION_S = 0.5
 
-lock = Servo(SERVO_PIN)
+lock = Servo(config.SERVO_PIN)
 lock.write(IDLE_ANGLE)
 
 
