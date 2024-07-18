@@ -36,7 +36,7 @@ Player and admin UI are not part of this project. They are developed individuall
 Print all the required parts and assemble the lockbox. For instructions, see [here](#hardware-assembly-instructions).
 
 ### Game server deployment
-TODO
+TODO (mention DEV-mode and loading a game file; game file format by example)
 
 ### Lockbox controller setup
 Unless stated otherwise, all commands within this section need to be run from within the `lockbox` subdirectory.
@@ -96,7 +96,48 @@ to copy only the specified file to the device.
 ### LoRa gateway setup
 The LoRa gateway is not yet implemented. Currently, the lockbox controller connects directly to the game server via WiFi.
 
+## Game server API
+TBD
+- Admin endpoints (loading a game)
+- checkAnswer endpoint
+
 ## Hardware assembly instructions
 _Please note that the CAD files for this project are not currently available to the public._
 
-TODO
+### Parts list
+Aside from the 3D-printed components, the following parts are required:
+- 1x LoRa-capable ESP32 development board (e.g. this [SX1276 ESP32 LoRa Development Board](https://www.aliexpress.com/item/1005005967763162.html))
+- 1x SG90 9g servo motor
+- 4x 8x2mm magnets
+- 1x 6.5x10mm compression spring (6.5mm outer diameter, ~0.5mm wire diameter)
+- 4x M3x10 pan head screws
+- 4x M3x16 pan head screws
+- 8x M3 hex nuts
+
+### Assembly instructions
+1. Start by assembling the circuitry. Solder wires to the `5V` (red) and `GND` (black) pin, as well as any third pin (orange) on the ESP32 development board. This third pin will be the `SERVO_PIN` and must be set accordingly in `config.py`. It is recommended to now perform a first smoke test: Connect a servo motor to the wires, [install the Cipherlock firmware on the microcontroller](#deploying-to-the-first-lockbox-controller) and trigger an _unlock_ by sending a "correct" `/checkAnswer` request to the game server.
+    ![](doc/img/assembly/01-circuitry.jpeg)
+2. TBD
+   ![](doc/img/assembly/02-servo.jpeg)
+3. TBD
+   ![](doc/img/assembly/03-lid.jpeg)
+4. TBD
+   ![](doc/img/assembly/04-base-full.jpeg)
+5. TBD
+   ![](doc/img/assembly/05-base-front.jpeg)
+6. TBD
+   ![](doc/img/assembly/06-base-rear.jpeg)
+7. TBD
+   ![](doc/img/assembly/07-hinges.jpeg)
+8. TBD
+   ![](doc/img/assembly/08-levitating-lid.jpeg)
+9. TBD
+   ![](doc/img/assembly/09-hinge-nut.jpeg)
+10. TBD
+    ![](doc/img/assembly/10_hinge_fully_assembled.jpeg)
+11. TBD
+    ![](doc/img/assembly/11_putting_everything_together.jpeg)
+12. TBD
+    ![](doc/img/assembly/12_cover.jpeg)
+13. TBD
+    ![](doc/img/assembly/13_done.jpeg)
