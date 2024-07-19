@@ -109,11 +109,45 @@ to copy only the specified file to the device.
 The LoRa gateway is not yet implemented. Currently, the lockbox controller connects directly to the game server via WiFi.
 
 ## Game server API
-- `POST /admin/game`: TODO
-- `POST /checkAnswer`: TODO
-- `POST /onboard`: TODO
-- `POST /checkIn`: TODO
+See `src/models.ts` for request / response models.
 
+### Load game spec
+Endpoint: `POST /admin/game`\
+Body: `GameSpec`
+
+Headers:
+* `apiKey`: server's API key
+
+Returns:
+* `204 NO CONTENT`: game loaded 
+* `401 UNAUTHORIZED`: `apiKey` header missing or invalid
+* `400 BAD REQUEST`: payload not `application/json`
+
+### Onboard player
+_Required for players before `checkAnswer` requests if `requireKnownPlayers` is set to `true` in game spec._
+
+Endpoint: `POST /onboard` \
+Body: `OnboardingRequest`
+
+Returns:
+* `200 SUCCESS`: onboarding successful → OnboardingSuccessResponse
+* `409 CONFLICT`: no game active, invalid gameId, player name invalid or unavailable → `OnboardingErrorResponse`
+
+#### Check gameId and playerId validity
+Endpoint: `POST /checkIn` \
+Body: CheckInRequest
+
+Returns:
+* `200 SUCCESS`: `CheckInResponse`
+* `409 CONFLICT`: no game active
+
+### Check answer and trigger unlock event
+Endpoint: `POST /checkAnswer` \
+Body: `AnswerCheckRequest`
+
+Returns:
+* `200 OK`: valid request → `AnswerCheckResult`
+* `409 CONFLICT`: no game active, invalid gameId, playerId or questionId → `AnswerCheckErrorResponse`
 
 ## Hardware assembly instructions
 _Please note that the CAD files for this project are not currently available to the public._
