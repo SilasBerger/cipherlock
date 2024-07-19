@@ -5,9 +5,21 @@ An IoT lockbox for hybrid scavenger hunts.
 Cipherlock is an IoT-based lockbox for hybrid scavenger hunts.
 
 ### The basic principle
-(TODO: Basic principle: admin writes and loads game spec, players POST answer, GS sends unlock command via WS, gateway relays via LoRa, box unlocks)
+Cipherlock consists of three main components: the _lockbox_, the _lockbox controller_, and the _game server_. In a future version, a fourth key component will the _LoRa gateway_.
 
-(TODO: The moving parts; maybe a diagram)
+![](doc/img/cipherlock_overview.drawio.png)
+
+The _lockbox_ is a 3D-printed treasure chest that cannot be manually opened from the outside.
+
+Internally, the lockbox uses a spring-loaded latch to provide to hold the lid shut. The _lockbox controller_ controls a servo motor which retracts that lid, allowing the box to open. 
+![](doc/img/assembly/10_hinge_fully_assembled.jpeg)
+
+Magnets in the box's lid and base ensure that the lid opens automatically, once the latch is retracted.
+![](doc/img/assembly/08-levitating-lid.jpeg)
+
+The lockbox controller unlocks the box when it receives a command to do so from the game server. In its current implementation, the controller connects directly to the game server via a WebSocket. In a future version, this will be relayed through a LoRa connection between the lockbox controller and a LoRa gateway.
+
+Outward, the game server provides REST API with several endpoints, one of which being `POST /checkAnswer`. A game spec file defines what type of answer is expected for a given lockbox (a.k.a. _cache_) and what answers are considered correct. When an acceptable answer is provided during a requet to the `/checkAnswer` endpoint, the corresponding lockbox receives an _unlock_ command, causing the lid to open automatically. A single game spec may define an arbitrary number of caches, each with their corresponding lockbox and answer definition.
 
 ### What's in this repository?
 This repository contains the code for the following components of Cipherlock:
@@ -97,9 +109,11 @@ to copy only the specified file to the device.
 The LoRa gateway is not yet implemented. Currently, the lockbox controller connects directly to the game server via WiFi.
 
 ## Game server API
-TBD
-- Admin endpoints (loading a game)
-- checkAnswer endpoint
+- `POST /admin/game`: TODO
+- `POST /checkAnswer`: TODO
+- `POST /onboard`: TODO
+- `POST /checkIn`: TODO
+
 
 ## Hardware assembly instructions
 _Please note that the CAD files for this project are not currently available to the public._
@@ -144,6 +158,6 @@ Aside from the 3D-printed components, the following parts and tools are required
 
 The box is now fully assembled. To complete the setup, the following next steps are recommended in this order:
 1. If not done already, [deploy the lockbox controller firmware to the ESP32 device](#deploying-to-the-first-lockbox-controller).
-2. Perform a smoke test by triggering an _unlock_ via a "correct" `/checkAnswer` request to the game server. The latch should now retract and quickly be released back into its neutral position. **If the latch does not get released (i.e. the servo does not retract), immediately disconnect the USB cable to avoid damage.** Change the `IDLE_ANGLE` and `UNLOCK_ANGLE` properties in `config.py` accordingly (see `config.example.py` for further information).
+2. Perform a smoke test by triggering an _unlock_ via a "correct" `/checkAnswer` request to the game server. The latch should now retract and quickly be released back into its neutral position. **If the latch does not get released (i.e. the servo does not return to idle), immediately disconnect the USB cable to avoid damage.** Change the `IDLE_ANGLE` and `UNLOCK_ANGLE` properties in `config.py` accordingly (see `config.example.py` for further information).
 3. Close the lid check whether the box properly locks.
 4. Perform another _unlock_ and verify that the box opens as expected.
