@@ -48,7 +48,29 @@ Player and admin UI are not part of this project. They are developed individuall
 Print all the required parts and assemble the lockbox. For instructions, see [here](#hardware-assembly-instructions).
 
 ### Game server deployment
-TODO (mention DEV-mode and loading a game file; game file format by example)
+Run
+
+```shell
+yarn run start
+```
+
+to start the game server in development mode.
+
+If `ENV=dev` is set, an example game will be loaded automatically upon startup. Else, [perform a request to load a game spec](#load-game-spec) next.
+
+To deploy the application, you can either push the game server directory to a Dokku server or run
+
+```shell
+yarn run build
+```
+
+to create a deployment build in `dist`. Then, run
+
+```shell
+node dist/server.js
+```
+
+to launch the application.
 
 ### Lockbox controller setup
 Unless stated otherwise, all commands within this section need to be run from within the `lockbox` subdirectory.
