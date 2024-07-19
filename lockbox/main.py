@@ -6,18 +6,14 @@ import json
 from servo import Servo
 from ws import AsyncWebsocketClient
 
-IDLE_ANGLE = 140
-UNLOCK_ANGLE = 165
-UNLOCK_DURATION_S = 0.5
-
 lock = Servo(config.SERVO_PIN)
-lock.write(IDLE_ANGLE)
+lock.write(config.IDLE_ANGLE)
 
 
 def unlock():
-    lock.write(UNLOCK_ANGLE)
-    time.sleep(UNLOCK_DURATION_S)
-    lock.write(IDLE_ANGLE)
+    lock.write(config.UNLOCK_ANGLE)
+    time.sleep(config.UNLOCK_DURATION_S)
+    lock.write(config.IDLE_ANGLE)
 
 
 def handle_unlock_event(data):
