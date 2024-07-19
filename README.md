@@ -72,6 +72,11 @@ node dist/server.js
 
 to launch the application.
 
+#### Environment variablesPORT
+* `API_KEY`: server's API key (required for authentication on `/admin` endpoints)
+* `PORT`: port on which to serve the application
+* `ENV`: if set to `dev`, an example game is loaded automatically upon startup
+
 ### Lockbox controller setup
 Unless stated otherwise, all commands within this section need to be run from within the `lockbox` subdirectory.
 
