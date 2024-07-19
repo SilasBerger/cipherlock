@@ -1,5 +1,4 @@
 import express from 'express';
-import {Server} from 'socket.io';
 import * as http from "http";
 import bodyParser from "body-parser";
 import {BehaviorSubject, tap} from "rxjs";
@@ -16,9 +15,10 @@ import cors from 'cors';
 import {Game} from "./game";
 import * as fs from "fs";
 import yaml from "js-yaml";
+import WebSocket, {WebSocketServer} from "ws";
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3099;
-const API_KEY = process.env.KEY || 'key1234';
+const API_KEY = process.env.KEY || '33de75ea-4dfa-4d69-9ea1-8ff8435a5e45';
 
 const $gameSpec = new BehaviorSubject<GameSpec | null>(null);
 
@@ -37,17 +37,72 @@ $gameSpec.asObservable().pipe(
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: '*',
+
+const webSocketServer = new WebSocketServer({noServer: true});
+const webSocketConnections: WebSocket[] = [];
+
+function declineUpgrade(socket: any, message: string) {
+  const responseHeaders = [
+    'HTTP/1.1 400 Bad Request',
+    'Connection: close',
+    'Content-Type: text/plain',
+    '\r\n'
+  ].join('\r\n');
+
+  socket.write(responseHeaders);
+  socket.write(message);
+  socket.destroy();
+}
+
+server.on('upgrade', async (request: http.IncomingMessage, socket, head) => {
+  if (!request.url) {
+    declineUpgrade(socket, 'Missing url');
+    return;
   }
+
+  const url = new URL(request.url.startsWith('/') ? `ws://localhost${request.url}` : request.url);
+
+  if (url.pathname !== '/ws') {
+    console.log(`Refusing connection upgrade: invalid path (${url.pathname})`);
+    declineUpgrade(socket, 'Invalid path');
+    return;
+  }
+
+  const apiKey = url.searchParams?.get('apiKey');
+  if (apiKey !!= API_KEY) {
+    console.log(`Refusing connection upgrade: missing or invalid apiKey (${apiKey}).`);
+    declineUpgrade(socket, 'Invalid API key');
+    return;
+  }
+
+  webSocketServer.handleUpgrade(request, socket, head, (ws) => {
+    webSocketConnections.push(ws);
+    console.log(`Registered WebSocket connection. We have ${webSocketConnections.length} connections now.`);
+    webSocketServer.emit('connection', ws, request);
+  });
+});
+
+webSocketServer.on('connection', (ws) => {
+  ws.on('error', console.error);
+
+  ws.on('message', (data) => {
+    console.log('received: %s', data);
+  });
+
+  ws.on('close', () => {
+    const index = webSocketConnections.indexOf(ws);
+    if (index > -1) {
+      webSocketConnections.splice(index);
+    }
+    console.log(`WS disconnected. We have ${webSocketConnections.length} connections now.`);
+  });
 });
 
 app.use(cors());
 app.use(bodyParser.json({type: 'application/json'}));
 
 if (process.env.ENV === 'dev') {
-  const gameFile = fs.readFileSync('sample_data/hello_world_game.yaml', 'utf-8');
+  const gameFile = fs.readFileSync('sample_data/demo_game.yaml', 'utf-8');
   $gameSpec.next(yaml.load(gameFile) as GameSpec);
 }
 
@@ -63,23 +118,6 @@ app.use((req, res, next) => {
   }
 
   next();
-});
-
-io.use((socket, next) => {
-  if (socket.request.headers.apikey === API_KEY) {
-    next();
-  } else {
-    next(new Error('API key missing or invalid.'));
-  }
-});
-
-io.on('connection', socket => {
-  const observer = new AdminObserver(socket, $gameSpec);
-  adminObservers.push(observer);
-
-  socket.on('disconnect', () => {
-    adminObservers.splice(adminObservers.indexOf(observer), 1);
-  });
 });
 
 app.post('/admin/game', (req, res) => {
@@ -153,16 +191,24 @@ app.post('/checkAnswer', (req, res) => {
 
   const gameIdValid = activeGame.gameId === answerCheckRequest.gameId;
   const playerIdValid = !activeGame.requiresKnownPlayers || activeGame.hasPlayerId(answerCheckRequest.playerId);
-  const questionIdValid = activeGame.hasQuestion(answerCheckRequest.questionId);
+  const questionId = answerCheckRequest.questionId;
+  const questionIdValid = activeGame.hasQuestion(questionId);
   if (!gameIdValid || !playerIdValid || !questionIdValid) {
     res.status(409);
     res.send({gameIdValid, playerIdValid, questionIdValid} as AnswerCheckErrorResponse);
   }
 
-  const result = activeGame.checkAnswer(answerCheckRequest.questionId, answerCheckRequest.answer);
+  const result = activeGame.checkAnswer(questionId, answerCheckRequest.answer);
 
   if (result.correct) {
-    // TODO: Have box unlocked.
+    webSocketConnections.forEach(ws => {
+      ws.send(JSON.stringify({
+        event: 'unlock',
+        data: {
+          lockboxId: activeGame?.getLockboxIdFor(questionId),
+        }
+      }));
+    })
   }
 
   res.status(200);

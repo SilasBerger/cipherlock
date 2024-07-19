@@ -1,0 +1,9 @@
+WIFI_SSID = "my-wifi"
+WIFI_KEY = "key1234"
+WEBSOCKET_CONNECTION_URL = "ws://<WS server URI>:<WS server port>/<WS path>"
+SERVER_API_KEY = "<game server's API key>"
+DEVICE_ID = 255  # number, 1-255
+SERVO_PIN = 22  # The pin on the ESP32 device to which the servo is connected.
+IDLE_ANGLE = 140  # The angle of the servo in idle position (should barely touch the latch)
+UNLOCK_ANGLE = 165  # The angle of the servo when unlocking the latch. Increase if the latch doesn't fully unlock. Decrease of the servo doesn't go back to idle.
+UNLOCK_DURATION_S = 0.5  # Delay between unlock and release.

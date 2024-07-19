@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>WS Test</title>
+    <script>
+      const apiKey = '33de75ea-4dfa-4d69-9ea1-8ff8435a5e45';
+
+      const ws = new WebSocket(`ws://localhost:3099/ws?apiKey=${apiKey}`);
+      ws.onopen = (data) => console.log({open: data});
+      ws.onmessage = (event) => {
+        const payload = JSON.parse(event.data);
+        console.log(payload);
+      };
+      ws.onclose = (data) => console.log({close: data});
+    </script>
+</head>
+<body>
+    <h1>WS Test</h1>
+</body>
+</html>

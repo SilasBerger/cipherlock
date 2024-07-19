@@ -72,6 +72,14 @@ export class Game {
     return Object.keys(this._answerDefinitions).includes(questionId);
   }
 
+  getLockboxIdFor(questionId: string) {
+    const lockboxId = this._gameSpec.caches.find((cache) => cache.questionId === questionId)?.lockboxId;
+    if (!lockboxId) {
+      throw new Error(`No lockbox associated with questionId ${questionId}. This should have been checked beforehand.`);
+    }
+    return lockboxId;
+  }
+
   checkAnswer(questionId: string, answer: Answer): AnswerCheckResult {
     if (!this.hasQuestion(questionId)) {
       throw new Error(`No answer definition for questionId ${questionId}. This should have been checked beforehand.`);

@@ -1,0 +1,15 @@
+gameId: demo_game # Clients use this gameId to verify that the correct game is active.
+gameDescription: This is not the greatest game in the world. This is just a tribute. # Human-readable description.
+requireKnownPlayers: false # If true, players must provide a known playerId (obtained through the /onboard checkpoint) when checking an answer.
+caches: # Array of all available lockboxes (i.e. "caches").
+  - questionId: 27ecdee1-dd8c-4d66-ae4f-50c79620e651
+    lockboxId: 255 # Identifier of the lockbox to be unlocked upon correct answer (1-255)
+    description: Name 'Authentizität' as the security goal in question # Human-readable description of this question / cache.
+    answer: # Answer specification object.
+      type: TextAnswer # Any of: TextAnswer, SingleChoiceAnswer.
+      spec: # Type-specific answer specification object.
+        matchCase: false # If true, answer matching is case-sensitive.
+        acceptedAnswers:  # Array of accepted answer strings; a correct answer exactly matches one of these strings.
+          - "Authentizität"
+          - "Authentizitaet"
+          - "Authentisierung"
