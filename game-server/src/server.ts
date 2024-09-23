@@ -39,6 +39,7 @@ function pathSegments(path: string): string[] {
   return path.split('/').filter(segment => !!segment);
 }
 
+// TODO: This should be handled by an auth config solution (see teaching-api).
 app.use((req, res, next) => {
   if (pathSegments(req.path)[0] === 'admin' && req.headers.apikey !== API_KEY) {
     res.status(401);
@@ -47,68 +48,6 @@ app.use((req, res, next) => {
   }
 
   next();
-});
-
-app.post('/admin/game', (req, res) => {
-  if (!req.is('application/json')) {
-    res.status(400);
-    res.send('Bad type: Payload must be application/json.');
-    return;
-  }
-
-  const gameSpec: GameSpec = req.body as GameSpec;
-  Engine.instance.updateGameSpec(gameSpec);
-
-  res.status(204);
-  res.send();
-});
-
-app.post('/onboard', (req, res) => {
-  const onboardingRequest = req.body as OnboardingRequest;
-  const activeGame = Engine.instance.activeGame;
-
-  const playerName = onboardingRequest.playerName;
-  const gameIdValid = activeGame?.gameId === onboardingRequest.gameId;
-  const playerNameAvailable = !activeGame?.hasPlayerName(playerName);
-  const playerNameValid = playerName.length >= 3 && playerName.length < 15;
-  if (!activeGame || !gameIdValid || !playerNameAvailable || !playerNameValid) {
-    res.status(409);
-    res.json({
-      gameActive: Engine.instance.isGameActive,
-      gameIdValid: gameIdValid,
-      playerNameAvailable: playerNameAvailable,
-      playerNameValid: playerNameValid,
-    } as OnboardingErrorResponse);
-    return;
-  }
-
-  const playerId = activeGame!.addPlayer(playerName);
-
-  res.status(200);
-  res.json({
-    playerId: playerId,
-  } as OnboardingSuccessResponse);
-});
-
-app.post('/checkIn', (req, res) => {
-  const checkInRequest = req.body as CheckInRequest;
-  const activeGame = Engine.instance.activeGame;
-
-  if (!activeGame) {
-    res.status(409);
-    res.send('No game active.');
-    return;
-  }
-
-  const gameIdValid = activeGame.gameId === checkInRequest.gameId;
-  const playerIdValid = !activeGame.requiresKnownPlayers || activeGame.hasPlayerId(checkInRequest.playerId);
-
-  res.status(200);
-  res.json({
-    gameIdValid: gameIdValid,
-    playerIdValid: playerIdValid,
-    success: gameIdValid && playerIdValid,
-  } as CheckInResponse);
 });
 
 app.use(router);
