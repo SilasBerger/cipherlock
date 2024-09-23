@@ -1,6 +1,6 @@
-import {GameSpec} from "./model";
 import {Observable, tap} from "rxjs";
 import {Socket} from "socket.io";
+import {GameSpec} from "./models/game";
 
 export class AdminObserver {
   constructor(private _socket: Socket, $gameSpec: Observable<GameSpec | null>) {

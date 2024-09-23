@@ -1,7 +1,7 @@
 import {RequestHandler} from "express";
-import {AnswerCheckErrorResponse, AnswerCheckRequest} from "../model";
 import {Engine} from "../core/engine";
 import {SocketEventType} from "../socket";
+import {AnswerCheckErrorResponse, AnswerCheckRequest} from "../models/api";
 
 export const checkAnswer: RequestHandler<any, any, AnswerCheckRequest> = async (req, res, next) => {
   const activeGame = Engine.instance.activeGame;

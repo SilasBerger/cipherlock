@@ -1,12 +1,12 @@
 import {
-  AnswerCheckResult,
+  ProvidedSingleChoiceAnswer,
+  ProvidedTextAnswer,
   SingleChoiceAnswerSpec,
-  SingleChoiceAnswer,
-  TextAnswerSpec,
-  TextAnswer
-} from "../../model";
+  TextAnswerSpec
+} from "../../models/caches";
+import {AnswerCheckResult} from "../../models/api";
 
-export function checkTextAnswer(spec: TextAnswerSpec, value: TextAnswer): AnswerCheckResult {
+export function checkTextAnswer(spec: TextAnswerSpec, value: ProvidedTextAnswer): AnswerCheckResult {
   const acceptedAnswers = spec.matchCase ? spec.acceptedAnswers : spec.acceptedAnswers.map(answer => answer.toLowerCase()) ;
   const providedAnswer = spec.matchCase ? value.text : value.text.toLowerCase();
   return {
@@ -14,7 +14,7 @@ export function checkTextAnswer(spec: TextAnswerSpec, value: TextAnswer): Answer
   };
 }
 
-export function checkSingleChoiceAnswer(spec: SingleChoiceAnswerSpec, value: SingleChoiceAnswer): AnswerCheckResult {
+export function checkSingleChoiceAnswer(spec: SingleChoiceAnswerSpec, value: ProvidedSingleChoiceAnswer): AnswerCheckResult {
   return {
     correct: spec.correctAnswers.includes(value.choice),
   }

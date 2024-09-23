@@ -1,20 +1,13 @@
 import express from 'express';
 import * as http from "http";
 import bodyParser from "body-parser";
-import {
-  CheckInRequest,
-  CheckInResponse,
-  GameSpec,
-  OnboardingErrorResponse,
-  OnboardingRequest,
-  OnboardingSuccessResponse
-} from "./model";
 import cors from 'cors';
 import * as fs from "fs";
 import yaml from "js-yaml";
 import {Engine} from "./core/engine";
 import {SocketServer} from "./socket";
 import router from "./routes/router";
+import {GameSpec} from "./models/game";
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3099;
 const API_KEY = process.env.KEY || '33de75ea-4dfa-4d69-9ea1-8ff8435a5e45';

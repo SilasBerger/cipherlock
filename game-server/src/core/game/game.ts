@@ -1,14 +1,14 @@
-import {
-  Answer,
-  AnswerCheckResult,
-  AnswerDefinition,
-  AnswerType,
-  GameSpec,
-  SingleChoiceAnswerSpec, SingleChoiceAnswer,
-  TextAnswerSpec, TextAnswer
-} from "../../model";
 import * as crypto from "crypto";
 import {checkSingleChoiceAnswer, checkTextAnswer} from "./answerValidators";
+import {
+  AnswerDefinition,
+  AnswerType, ProvidedAnswer,
+  ProvidedSingleChoiceAnswer, ProvidedTextAnswer,
+  SingleChoiceAnswerSpec,
+  TextAnswerSpec
+} from "../../models/caches";
+import {GameSpec} from "../../models/game";
+import {AnswerCheckResult} from "../../models/api";
 
 interface Player {
   id: string;
@@ -80,7 +80,7 @@ export class Game {
     return lockboxId;
   }
 
-  checkAnswer(questionId: string, answer: Answer): AnswerCheckResult {
+  checkAnswer(questionId: string, answer: ProvidedAnswer): AnswerCheckResult {
     if (!this.hasQuestion(questionId)) {
       throw new Error(`No answer definition for questionId ${questionId}. This should have been checked beforehand.`);
     }
@@ -88,9 +88,9 @@ export class Game {
     const answerDefinition = this._answerDefinitions[questionId];
     switch (answerDefinition.type) {
       case AnswerType.TextAnswer:
-        return checkTextAnswer(answerDefinition.spec as TextAnswerSpec, answer as TextAnswer);
+        return checkTextAnswer(answerDefinition.spec as TextAnswerSpec, answer as ProvidedTextAnswer);
       case AnswerType.SingleChoice:
-        return checkSingleChoiceAnswer(answerDefinition.spec as SingleChoiceAnswerSpec, answer as SingleChoiceAnswer);
+        return checkSingleChoiceAnswer(answerDefinition.spec as SingleChoiceAnswerSpec, answer as ProvidedSingleChoiceAnswer);
     }
   }
 }

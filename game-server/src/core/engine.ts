@@ -1,7 +1,7 @@
 import {Game} from "./game/game";
-import {BehaviorSubject, Observable, tap} from "rxjs";
-import {GameSpec} from "../model";
+import {BehaviorSubject, tap} from "rxjs";
 import {SocketServer} from "../socket";
+import {GameSpec} from "../models/game";
 
 export class Engine {
 

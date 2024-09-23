@@ -1,6 +1,6 @@
 import {RequestHandler} from "express";
-import {GameSpec} from "../model";
 import {Engine} from "../core/engine";
+import {GameSpec} from "../models/game";
 
 export const loadGame: RequestHandler<any, any, GameSpec> = async (req, res, next) => {
   if (!req.is('application/json')) {

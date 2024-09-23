@@ -1,12 +1,12 @@
 import {RequestHandler} from "express";
+import {Engine} from "../core/engine";
 import {
   CheckInRequest,
   CheckInResponse,
   OnboardingErrorResponse,
   OnboardingRequest,
   OnboardingSuccessResponse
-} from "../model";
-import {Engine} from "../core/engine";
+} from "../models/api";
 
 export const onboard: RequestHandler<any, any, OnboardingRequest> = async (req, res, next) => {
   const onboardingRequest = req.body;
