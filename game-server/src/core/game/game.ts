@@ -6,9 +6,9 @@ import {
   GameSpec,
   SingleChoiceAnswerSpec, SingleChoiceAnswer,
   TextAnswerSpec, TextAnswer
-} from "./model";
+} from "../../model";
 import * as crypto from "crypto";
-import {checkSingleChoiceAnswer, checkTextAnswer} from "./answer-checker";
+import {checkSingleChoiceAnswer, checkTextAnswer} from "./answerValidators";
 
 interface Player {
   id: string;

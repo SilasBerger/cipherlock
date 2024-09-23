@@ -4,7 +4,7 @@ import {
   SingleChoiceAnswer,
   TextAnswerSpec,
   TextAnswer
-} from "./model";
+} from "../../model";
 
 export function checkTextAnswer(spec: TextAnswerSpec, value: TextAnswer): AnswerCheckResult {
   const acceptedAnswers = spec.matchCase ? spec.acceptedAnswers : spec.acceptedAnswers.map(answer => answer.toLowerCase()) ;
