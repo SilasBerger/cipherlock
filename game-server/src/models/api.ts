@@ -1,4 +1,4 @@
-import {ProvidedAnswer} from "./caches";
+import {ProvidedAnswer} from "./shared";
 
 export interface OnboardingRequest {
   gameId: string;

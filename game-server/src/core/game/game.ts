@@ -2,13 +2,12 @@ import * as crypto from "crypto";
 import {checkSingleChoiceAnswer, checkTextAnswer} from "./answerValidators";
 import {
   AnswerDefinition,
-  AnswerType, ProvidedAnswer,
-  ProvidedSingleChoiceAnswer, ProvidedTextAnswer,
-  SingleChoiceAnswerSpec,
+  AnswerType, SingleChoiceAnswerSpec,
   TextAnswerSpec
 } from "../../models/caches";
 import {GameSpec} from "../../models/game";
 import {AnswerCheckResult} from "../../models/api";
+import {ProvidedAnswer, ProvidedSingleChoiceAnswer, ProvidedTextAnswer} from "../../models/shared";
 
 interface Player {
   id: string;

@@ -1,10 +1,9 @@
 import {
-  ProvidedSingleChoiceAnswer,
-  ProvidedTextAnswer,
   SingleChoiceAnswerSpec,
   TextAnswerSpec
 } from "../../models/caches";
 import {AnswerCheckResult} from "../../models/api";
+import {ProvidedSingleChoiceAnswer, ProvidedTextAnswer} from "../../models/shared";
 
 export function checkTextAnswer(spec: TextAnswerSpec, value: ProvidedTextAnswer): AnswerCheckResult {
   const acceptedAnswers = spec.matchCase ? spec.acceptedAnswers : spec.acceptedAnswers.map(answer => answer.toLowerCase()) ;
