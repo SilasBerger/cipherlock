@@ -2,3 +2,4 @@ venv
 node_modules
 *.drawio.bkp
 dist
+.DS_Store
