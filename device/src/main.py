@@ -31,8 +31,6 @@ def main():
     with open('config.json', 'r') as infile:
         config = json.load(infile)
     
-    print(config)
-    
     lora_conn = lora.init(config["lora"]["pins"], config["lora"]["params"])
     if config['role'] == 'tx':
         tx(lora_conn)

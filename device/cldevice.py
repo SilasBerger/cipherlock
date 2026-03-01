@@ -16,6 +16,10 @@ MPREMOTE = "./venv/bin/mpremote"
 DEVICE_ID_FILENAME = "device_id"  # Name of the device ID file on the device.
 CONFIG_FILENAME = "config.json"  # Name of the config file on the device.
 
+USB_PREFIX_WIN = "COM"
+USB_PREFIX_MACOS = "/dev/cu.usbserial"
+USB_PREFIX_LINUX = "/dev/tty"
+
 
 def exit_with_error(command = None, error_msg = "Unknown error."):
     if command:
@@ -25,16 +29,58 @@ def exit_with_error(command = None, error_msg = "Unknown error."):
     sys.exit(1)
 
 
-def read_device_id():
+def list_available_devices():
     try:
         result = subprocess.run(
-            [MPREMOTE, "fs", "cat", ":device_id"],
+            [MPREMOTE, "connect", "list"],
             check=True,
             capture_output=True,
             text=True,
         )
 
-        return result.stdout.strip()
+        entries = result.stdout.strip().split('\n')
+        devices = [entry for entry in entries if entry.startswith(USB_PREFIX_WIN) or entry.startswith(USB_PREFIX_MACOS) or entry.startswith(USB_PREFIX_LINUX)]
+
+        return devices, None
+    except Exception as e:
+        return None, str(e)
+
+
+def mpremote(args):
+    devices, error = list_available_devices()
+    if error:
+        exit_with_error(error_msg=f"Failed to list available devices: {error}.")
+    
+    device_paths = [device.split(" ")[0] for device in devices]
+    if len(devices) == 0:
+        exit_with_error(error_msg="No devices available.")
+    
+    selected_device = device_paths[0]
+
+    if len(devices) > 1:
+        print("Multiple devices found:")
+        for index, device in enumerate(devices):
+            print(f"[{index}] {device}")
+
+        try:
+            selected_id = int(input("\nSelect device number: "))
+            if selected_id > len(devices) - 1:
+                raise Exception(f"Device number out of range: {selected_id}.")
+            selected_device = device_paths[selected_id]
+        except Exception as e:
+            exit_with_error(error_msg=str(e))
+
+    return subprocess.run(
+        [MPREMOTE, "connect", selected_device, *args],
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout
+
+
+def read_device_id():
+    try:
+        return mpremote(["fs", "cat", ":device_id"]).strip()
     except Exception as e:
         return None
     
@@ -65,14 +111,9 @@ def ensure_device_id(command = None, overwrite = False, device_id = None):
 
 def read_config():
     try:
-        result = subprocess.run(
-            [MPREMOTE, "fs", "cat", ":config.json"],
-            check=True,
-            capture_output=True,
-            text=True,
-        )
+        result = mpremote(["fs", "cat", ":config.json"])
 
-        return result.stdout.strip(), None
+        return result.strip(), None
     except Exception as e:
         return None, str(e)
 
@@ -256,6 +297,17 @@ class ReadErrorLogCommand(Command):
         except Exception as e:
             self.line("<comment>No error log found.</comment>")
 
+
+class ListDevicesCommand(Command):
+    name = "list-devices"
+    description = "List the USB devices available for connection."
+
+    def handle(self):
+        devices, error = list_available_devices()
+        if error:
+            exit_with_error(self, f"Error listing devices: {error}.")
+        self.line(devices)
+
         
 application = Application()
 application.add(InstallCommand())
@@ -266,6 +318,7 @@ application.add(ReadConfigCommand())
 application.add(WriteConfigCommand())
 application.add(DevCommand())
 application.add(ReadErrorLogCommand())
+application.add(ListDevicesCommand())
 
 
 if __name__ == "__main__":
