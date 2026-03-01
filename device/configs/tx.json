@@ -1,3 +1,26 @@
 {
-    "role": "tx"
+    "role": "tx",
+    "lora": {
+        "pins": {
+            "miso": 19,
+            "mosi": 27,
+            "ss": 18,
+            "sck": 5,
+            "dio_0": 26,
+            "reset": 14,
+            "led": 2
+        },
+        "params": {
+            "frequency": 868E6,
+            "tx_power_level": 15,
+            "signal_bandwidth": 125E3,
+            "spreading_factor": 8,
+            "coding_rate": 5,
+            "preamble_length": 8,
+            "implicit_header": false,
+            "sync_word": 18,
+            "enable_CRC": false,
+            "invert_IQ": false
+        }
+    }
 }

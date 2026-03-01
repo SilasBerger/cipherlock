@@ -1,33 +1,45 @@
-from lora import LoRa
-from machine import Pin, SPI
-from utime import sleep
+import json
+import lora
+from time import sleep
 
-# SPI pins
-SCK  = 14
-MOSI = 13
-MISO = 12
-# Chip select
-CS   = 32
-# Receive IRQ
-RX   = 36
 
-# Setup SPI
-spi = SPI(
-    1,
-    baudrate=10000000,
-    sck=Pin(SCK, Pin.OUT, Pin.PULL_DOWN),
-    mosi=Pin(MOSI, Pin.OUT, Pin.PULL_UP),
-    miso=Pin(MISO, Pin.IN, Pin.PULL_UP),
-)
-spi.init()
+def rx(lora_conn):
+    print("🚀 LoRa Receiver")
 
-# Setup LoRa
-lora = LoRa(
-    spi,
-    cs=Pin(CS, Pin.OUT),
-    rx=Pin(RX, Pin.IN),
-)
+    while True:
+        if lora_conn.received_packet():
+            lora_conn.blink_led()
+            print('\n=== Received payload ===')
+            payload = lora_conn.read_payload()
+            print(payload)
 
-while True:
-    lora.send('Hello world!')
-    sleep(1)
+
+def tx(lora_conn):
+    counter = 0
+    print("🚀 LoRa Sender")
+
+    while True:
+        payload = f"Hello ({counter})"
+        print(f"Sending payload: '{payload}' RSSI: {lora_conn.packet_rssi()}")
+        lora_conn.println(payload)
+
+        counter += 1
+        sleep(5)
+
+
+def main():
+    with open('config.json', 'r') as infile:
+        config = json.load(infile)
+    
+    print(config)
+    
+    lora_conn = lora.init(config["lora"]["pins"], config["lora"]["params"])
+    if config['role'] == 'tx':
+        tx(lora_conn)
+    elif config['role'] == 'rx':
+        rx(lora_conn)
+    else:
+        print(f'Unknown role: {config['role']}')
+
+
+main()
