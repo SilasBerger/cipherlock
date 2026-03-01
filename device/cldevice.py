@@ -20,6 +20,8 @@ USB_PREFIX_WIN = "COM"
 USB_PREFIX_MACOS = "/dev/cu.usbserial"
 USB_PREFIX_LINUX = "/dev/tty"
 
+device_path = None
+
 
 def exit_with_error(command = None, error_msg = "Unknown error."):
     if command:
@@ -46,7 +48,9 @@ def list_available_devices():
         return None, str(e)
 
 
-def mpremote(args):
+def mpremote(args, capture_output=True):
+    global device_path
+
     devices, error = list_available_devices()
     if error:
         exit_with_error(error_msg=f"Failed to list available devices: {error}.")
@@ -55,9 +59,7 @@ def mpremote(args):
     if len(devices) == 0:
         exit_with_error(error_msg="No devices available.")
     
-    selected_device = device_paths[0]
-
-    if len(devices) > 1:
+    if len(devices) > 1 and not device_path:
         print("Multiple devices found:")
         for index, device in enumerate(devices):
             print(f"[{index}] {device}")
@@ -66,14 +68,14 @@ def mpremote(args):
             selected_id = int(input("\nSelect device number: "))
             if selected_id > len(devices) - 1:
                 raise Exception(f"Device number out of range: {selected_id}.")
-            selected_device = device_paths[selected_id]
+            device_path = device_paths[selected_id]
         except Exception as e:
             exit_with_error(error_msg=str(e))
 
     return subprocess.run(
-        [MPREMOTE, "connect", selected_device, *args],
+        [MPREMOTE, "connect", device_path, *args],
         check=True,
-        capture_output=True,
+        capture_output=capture_output,
         text=True,
     ).stdout
 
@@ -96,12 +98,7 @@ def ensure_device_id(command = None, overwrite = False, device_id = None):
     with open(DEVICE_ID_FILENAME, "w") as f:
         f.write(str(device_id))
     try:
-        subprocess.run(
-            [MPREMOTE, "fs", "cp", DEVICE_ID_FILENAME, ":device_id"],
-            check=False,
-            stdout = subprocess.DEVNULL,
-            stderr = subprocess.DEVNULL
-        )
+        mpremote(["fs", "cp", DEVICE_ID_FILENAME, ":device_id"])
         return device_id
     except Exception as e:
         exit_with_error(command, str(e))
@@ -112,7 +109,6 @@ def ensure_device_id(command = None, overwrite = False, device_id = None):
 def read_config():
     try:
         result = mpremote(["fs", "cat", ":config.json"])
-
         return result.strip(), None
     except Exception as e:
         return None, str(e)
@@ -120,12 +116,7 @@ def read_config():
 
 def write_config(config_file):
     try:
-        subprocess.run(
-            [MPREMOTE, "fs", "cp", config_file, ":config.json"],
-            check=True,
-            stdout = subprocess.DEVNULL,
-            stderr = subprocess.DEVNULL
-        )
+        mpremote(["fs", "cp", config_file, ":config.json"])
     except Exception as e:
         return str(e)
     return None
@@ -143,10 +134,7 @@ class InstallCommand(Command):
         # ./mpremote fs cp -r src/* :
         self.line("Installing Cipherlock firmware...")
         src_files = [str(p) for p in Path("src").glob("*")]
-        subprocess.run(
-            [MPREMOTE, "fs", "cp", "-r"] + src_files + [":"],
-            check=True
-        )
+        mpremote(["fs", "cp", "-r"] + src_files + [":"], capture_output=False)
         ensure_device_id(self, overwrite=False)
         error = write_config(self.argument("config"))
         if error:
@@ -174,26 +162,20 @@ class UninstallCommand(Command):
         self.line("Removing firmware files...")
         
         # Get list of files/directories at root
-        list_cmd = [MPREMOTE, "fs", "ls", ":"]
-        result = subprocess.run(list_cmd, capture_output=True, text=True)
-        
-        if result.returncode != 0:
-            self.line("<error>Failed to list device files!</error>")
-            return
+        result = mpremote(["fs", "ls", ":"])
 
         protected_files = self.PROTECTED_ROOT_FILES if self.option("all") else self.PROTECTED_ROOT_FILES + self.OPTIONAL_PROTECTED_ROOT_FILES
-        entries = [" ".join(line.strip().split(" ")[1:]) for line in result.stdout.split("\n")]
+        entries = [" ".join(line.strip().split(" ")[1:]) for line in result.split("\n")]
         entries = [entry for entry in entries if entry != ":" and entry != "" and entry not in protected_files]
 
         for entry in entries:
             delete_cmd = [
-                "./venv/bin/mpremote", 
                 "fs", 
                 "rm", 
                 "-r", 
                 f":{entry}"
             ]
-            subprocess.run(delete_cmd, check=False)
+            mpremote(delete_cmd, capture_output=False)
 
         self.line("<comment>Cleanup complete.</comment>")
 
@@ -273,10 +255,7 @@ class DevCommand(Command):
         with open(build_path / DEVICE_ID_FILENAME, "w") as outfile:
             outfile.write(device_id)
 
-        subprocess.run(
-            [MPREMOTE, "mount", "build/", "exec", "import main"],
-            check=True
-        )
+        mpremote(["mount", "build/", "exec", "import main"], capture_output=False)
 
 
 class ReadErrorLogCommand(Command):
@@ -285,13 +264,7 @@ class ReadErrorLogCommand(Command):
 
     def handle(self):
         try:
-            result = json.loads(subprocess.run(
-                [MPREMOTE, "fs", "cat", ":error.log.json"],
-                check=True,
-                capture_output=True,
-                text=True,
-            ).stdout.strip())
-
+            result = json.loads(mpremote(["fs", "cat", ":error.log.json"]).strip())
             for index, log_line in enumerate(result):
                 self.line(f"Entry {index + 1}: <error>{log_line}</error>")
         except Exception as e:
