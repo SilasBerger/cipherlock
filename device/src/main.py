@@ -1,43 +1,51 @@
 import json
 import lora
 from time import sleep
+import uasyncio as asyncio
 
 
-def rx(lora_conn):
+async def rx(lora_conn):
     print("🚀 LoRa Receiver")
 
     while True:
-        if lora_conn.received_packet():
-            lora_conn.blink_led()
+        try:
+            msg = await lora_conn.recv()
             print('\n=== Received payload ===')
-            payload = lora_conn.read_payload()
-            print(payload)
+            print(msg)
 
+        except Exception as e:
+            print("RX error:", e)
+            await asyncio.sleep(1)
 
-def tx(lora_conn):
+async def tx(lora_conn):
     counter = 0
     print("🚀 LoRa Sender")
 
     while True:
         payload = f"Hello ({counter})"
-        print(f"Sending payload: '{payload}' RSSI: {lora_conn.packet_rssi()}")
-        lora_conn.println(payload)
+        print(f"Sending payload: '{payload}'")
+        await lora_conn.send(payload)
 
         counter += 1
-        sleep(5)
+        await asyncio.sleep(5)
 
 
-def main():
+async def main():
     with open('config.json', 'r') as infile:
         config = json.load(infile)
-    
+
     lora_conn = lora.init(config["lora"]["pins"], config["lora"]["params"])
+
     if config['role'] == 'tx':
-        tx(lora_conn)
+        asyncio.create_task(tx(lora_conn))
     elif config['role'] == 'rx':
-        rx(lora_conn)
+        asyncio.create_task(rx(lora_conn))
     else:
-        print(f'Unknown role: {config['role']}')
+        print(f"Unknown role: {config['role']}")
+
+    # Keep main alive forever
+    while True:
+        await asyncio.sleep(3600)
 
 
-main()
+asyncio.run(main())

@@ -11,9 +11,9 @@
             "led": 2
         },
         "params": {
-            "frequency": 868E6,
+            "frequency": 868000000,
             "tx_power_level": 15,
-            "signal_bandwidth": 125E3,
+            "signal_bandwidth": 125000,
             "spreading_factor": 8,
             "coding_rate": 5,
             "preamble_length": 8,
