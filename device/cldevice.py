@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 import subprocess
-import uuid
 import os
 import sys
 import shutil
@@ -15,8 +14,9 @@ from cleo.application import Application
 # - support selecting device based on device-id (ideally with (gateway) marker for device_id=0)
 
 MPREMOTE = "./venv/bin/mpremote"
-DEVICE_ID_FILENAME = "device_id"  # Name of the device ID file on the device.
 CONFIG_FILENAME = "config.json"  # Name of the config file on the device.
+ENV_FILENAME = "env.json"  # Name of the env file on the device.
+DEVICE_ID_ENV_KEY = "id"
 
 USB_PREFIX_WIN = "COM"
 USB_PREFIX_MACOS = "/dev/cu.usbserial"
@@ -91,12 +91,58 @@ def mpremote(args, capture_output=True):
     return run_device_command(device_path, args, capture_output)
 
 
-def read_device_id():
+def ensure_env():
     try:
-        return mpremote(["fs", "cat", ":device_id"]).strip()
+        return json.loads(mpremote(["fs", "cat", f":{ENV_FILENAME}"]).strip())
     except Exception as e:
-        return None
-    
+        mpremote(["fs", "touch", f":{ENV_FILENAME}"])
+        return {}
+
+
+def write_env(entries):
+    env = ensure_env()
+
+    for entry in entries:
+        if "=" not in entry:
+            exit_with_error(error_msg=f"Found invalid env entry: {entry}. Use key=value pairs.")
+
+    for entry in entries:
+        key, value = entry.split("=", 1)
+        env[key] = value
+
+    with open(ENV_FILENAME, "w", encoding="utf-8") as f:
+        json.dump(env, f, indent=2)
+    try:
+        mpremote(["fs", "cp", ENV_FILENAME, f":{ENV_FILENAME}"])
+    except Exception as e:
+        exit_with_error(error_msg=str(e))
+    finally:
+        os.remove(ENV_FILENAME)
+
+
+def remove_env_keys(keys, command):
+    env = ensure_env()
+
+    for key in keys:
+        if key in env:
+            del env[key]
+        else:
+            command.line(f"<error>Key {key} not in device's env - skipping…</error>")
+
+    with open(ENV_FILENAME, "w", encoding="utf-8") as f:
+        json.dump(env, f, indent=2)
+    try:
+        mpremote(["fs", "cp", ENV_FILENAME, f":{ENV_FILENAME}"])
+    except Exception as e:
+        exit_with_error(error_msg=str(e))
+    finally:
+        os.remove(ENV_FILENAME)
+
+
+def read_device_id():
+    env = ensure_env()
+    return env[DEVICE_ID_ENV_KEY] if DEVICE_ID_ENV_KEY in env else None
+
 
 def verify_device_id_or_fail(command = None):
     existing_device_id = read_device_id()
@@ -106,14 +152,7 @@ def verify_device_id_or_fail(command = None):
 
 
 def write_device_id(device_id, command = None):
-    with open(DEVICE_ID_FILENAME, "w") as f:
-        f.write(str(device_id))
-    try:
-        mpremote(["fs", "cp", DEVICE_ID_FILENAME, ":device_id"])
-    except Exception as e:
-        exit_with_error(command, str(e))
-    finally:
-        os.remove(DEVICE_ID_FILENAME)
+    write_env([f"{DEVICE_ID_ENV_KEY}={device_id}"])
 
 
 def read_config():
@@ -154,9 +193,9 @@ class InstallCommand(Command):
 
 class UninstallCommand(Command):
     name = "uninstall"
-    description = "Uninstall Cipherlock firmware from the connected device. Does not delete auxiliary files, such as device ID or config."
+    description = "Uninstall Cipherlock firmware from the connected device. Does not delete configuration files, such as config or env."
     options = [
-        option("all", "a", "Remove all files, including auxiliary files (device ID, config, etc.).", flag=True),
+        option("all", "a", "Remove all files, including configuration files (config, env, etc.), excluding bootloader.", flag=True),
     ]
 
     PROTECTED_ROOT_FILES = [
@@ -164,8 +203,8 @@ class UninstallCommand(Command):
     ]
 
     OPTIONAL_PROTECTED_ROOT_FILES = [
-        DEVICE_ID_FILENAME,
         CONFIG_FILENAME,
+        ENV_FILENAME
     ]
 
     def handle(self):
@@ -188,6 +227,40 @@ class UninstallCommand(Command):
             mpremote(delete_cmd, capture_output=False)
 
         self.line("<comment>Cleanup complete.</comment>")
+
+
+class ReadEnvCommand(Command):
+    name = "read-env"
+    description = "Dump the device's .env file."
+
+    def handle(self):
+        env = ensure_env()
+        self.line(json.dumps(env, indent=2))
+
+
+class WriteEnvCommand(Command):
+    name = "write-env"
+    description = "Write env key-value pairs to the device."
+
+    arguments = [
+        argument("entries", "The key=value pair(s) to write to the device's env.", optional=False, multiple=True)
+    ]
+
+    def handle(self):
+        write_env(self.argument("entries"))
+        self.line("<comment>Env updated successfully.</comment>")
+
+
+class RemoveEnvKeyCommand(Command):
+    name = "remove-env-key"
+
+    arguments = [
+        argument("keys", "The key(s) to delete from the device's env.", optional=False, multiple=True)
+    ]
+
+    def handle(self):
+        remove_env_keys(self.argument("keys"), self)
+        self.line("<comment>Env updated successfully.</comment>")
 
 
 class ReadDeviceIdCommand(Command):
@@ -264,11 +337,11 @@ class DevCommand(Command):
         with open(build_path / 'config.json', "w") as outfile:
             json.dump(json.loads(config), outfile, indent=2)
 
-        device_id = read_device_id()
-        if not device_id:
-            exit_with_error(self, "Unexpected error: Unable to read device ID.")
-        with open(build_path / DEVICE_ID_FILENAME, "w") as outfile:
-            outfile.write(device_id)
+        env = ensure_env()
+        if not env:
+            exit_with_error(self, "Unexpected error: Unable to read device env.")
+        with open(build_path / ENV_FILENAME, "w") as outfile:
+            json.dump(env, outfile)
 
         mpremote(["mount", "build/", "exec", "import main"], capture_output=False)
 
@@ -300,6 +373,9 @@ class ListDevicesCommand(Command):
 application = Application()
 application.add(InstallCommand())
 application.add(UninstallCommand())
+application.add(ReadEnvCommand())
+application.add(WriteEnvCommand())
+application.add(RemoveEnvKeyCommand())
 application.add(ReadDeviceIdCommand())
 application.add(WriteDeviceIdCommand())
 application.add(ReadConfigCommand())
