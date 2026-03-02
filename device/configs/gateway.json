@@ -1,5 +1,6 @@
 {
-    "role": "tx",
+    "role": "gateway",
+    "maxTTL": 10,
     "lora": {
         "pins": {
             "miso": 19,

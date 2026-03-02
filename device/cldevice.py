@@ -11,6 +11,8 @@ from cleo.commands.command import Command
 from cleo.helpers import argument, option
 from cleo.application import Application
 
+# TODO:
+# - support selecting device based on device-id (ideally with (gateway) marker for device_id=0)
 
 MPREMOTE = "./venv/bin/mpremote"
 DEVICE_ID_FILENAME = "device_id"  # Name of the device ID file on the device.
@@ -31,6 +33,15 @@ def exit_with_error(command = None, error_msg = "Unknown error."):
     sys.exit(1)
 
 
+def run_device_command(device, args=[], capture_output=True):
+    return subprocess.run(
+        [MPREMOTE, "connect", device, *args],
+        check=True,
+        capture_output=capture_output,
+        text=True,
+    ).stdout
+
+
 def list_available_devices():
     try:
         result = subprocess.run(
@@ -43,6 +54,8 @@ def list_available_devices():
         entries = result.stdout.strip().split('\n')
         devices = [entry for entry in entries if entry.startswith(USB_PREFIX_WIN) or entry.startswith(USB_PREFIX_MACOS) or entry.startswith(USB_PREFIX_LINUX)]
 
+        # TODO: After moving from device_id to .env file, enrich this result to a list of dicts containing the device_id and device_name as well.
+
         return devices, None
     except Exception as e:
         return None, str(e)
@@ -51,33 +64,31 @@ def list_available_devices():
 def mpremote(args, capture_output=True):
     global device_path
 
-    devices, error = list_available_devices()
-    if error:
-        exit_with_error(error_msg=f"Failed to list available devices: {error}.")
-    
-    device_paths = [device.split(" ")[0] for device in devices]
-    if len(devices) == 0:
-        exit_with_error(error_msg="No devices available.")
-    
-    if len(devices) > 1 and not device_path:
-        print("Multiple devices found:")
-        for index, device in enumerate(devices):
-            print(f"[{index}] {device}")
+    if not device_path:
+        devices, error = list_available_devices()
+        if error:
+            exit_with_error(error_msg=f"Failed to list available devices: {error}.")
+        
+        device_paths = [device.split(" ")[0] for device in devices]
+        if len(devices) == 0:
+            exit_with_error(error_msg="No devices available.")
+        
+        if len(devices) > 1:
+            print("Multiple devices found:")
+            for index, device in enumerate(devices):
+                print(f"[{index}] {device}")
 
-        try:
-            selected_id = int(input("\nSelect device number: "))
-            if selected_id > len(devices) - 1:
-                raise Exception(f"Device number out of range: {selected_id}.")
-            device_path = device_paths[selected_id]
-        except Exception as e:
-            exit_with_error(error_msg=str(e))
+            try:
+                selected_id = int(input("\nSelect device number: "))
+                if selected_id > len(devices) - 1:
+                    raise Exception(f"Device number out of range: {selected_id}.")
+                device_path = device_paths[selected_id]
+            except Exception as e:
+                exit_with_error(error_msg=str(e))
+        else:
+            device_path = device_paths[0]
 
-    return subprocess.run(
-        [MPREMOTE, "connect", device_path, *args],
-        check=True,
-        capture_output=capture_output,
-        text=True,
-    ).stdout
+    return run_device_command(device_path, args, capture_output)
 
 
 def read_device_id():
@@ -87,19 +98,18 @@ def read_device_id():
         return None
     
 
-def ensure_device_id(command = None, overwrite = False, device_id = None):
+def verify_device_id_or_fail(command = None):
     existing_device_id = read_device_id()
-    if existing_device_id is not None and not overwrite:
-        return
 
-    if not device_id:
-        device_id = uuid.uuid4()
-    
+    if not existing_device_id:
+        exit_with_error(command, 'No device ID found on the device - run `write-device-id` first!')
+
+
+def write_device_id(device_id, command = None):
     with open(DEVICE_ID_FILENAME, "w") as f:
         f.write(str(device_id))
     try:
         mpremote(["fs", "cp", DEVICE_ID_FILENAME, ":device_id"])
-        return device_id
     except Exception as e:
         exit_with_error(command, str(e))
     finally:
@@ -135,7 +145,7 @@ class InstallCommand(Command):
         self.line("Installing Cipherlock firmware...")
         src_files = [str(p) for p in Path("src").glob("*")]
         mpremote(["fs", "cp", "-r"] + src_files + [":"], capture_output=False)
-        ensure_device_id(self, overwrite=False)
+        verify_device_id_or_fail(self, overwrite=False)
         error = write_config(self.argument("config"))
         if error:
             exit_with_error(self, f"Encountered error while trying to write config: {error}. Installation aborted.")
@@ -186,21 +196,26 @@ class ReadDeviceIdCommand(Command):
 
     def handle(self):
         device_id = read_device_id()
-        self.line("<comment>Device ID: {}</comment>".format(device_id))
+        self.line(f"<comment>Device ID: {device_id}</comment>")
 
 
 class WriteDeviceIdCommand(Command):
     name = "write-device-id"
-    description = "Write a new device ID to the connected device. The ID is auto-generated by default."
+    description = "Write a new device ID to the connected device. Device ID must be an integer in the range [0, 254] where 0 is reserved for the gateway."
 
-    options = [
-        option("id", "i", "Use this UUID as the device ID, rather than auto-generating.", flag=False)
+    arguments = [
+        argument("id", "The device ID to write to this device (int, [0, 254]).", optional=False)
     ]
 
     def handle(self):
-        device_id = ensure_device_id(self, overwrite=True, device_id=self.option("id"))
-        self.line(f"<comment>Device ID written successfully: {device_id}</comment>")
-
+        try:
+            device_id = int(self.argument("id"))
+            if not 0 <= device_id <= 254:
+                raise Exception(f"Device ID out of range (0-254): {device_id}.")
+            write_device_id(device_id, command=self)
+            self.line(f"<comment>Device ID written successfully: {device_id}</comment>")
+        except Exception as e:
+            exit_with_error(self, str(e))
 
 class ReadConfigCommand(Command):
     name = "read-config"
@@ -237,7 +252,7 @@ class DevCommand(Command):
         src_path = Path('src')
         build_path = Path('build')
 
-        ensure_device_id(self)
+        verify_device_id_or_fail(self)
 
         if build_path.exists():
             shutil.rmtree(build_path)
