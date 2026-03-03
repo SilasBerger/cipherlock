@@ -10,7 +10,7 @@
 ### Configuration and environment setup
 **Note:** During this initial setup, it is recommended to only connect a single device to the host computer at a time, to avoid confusion between multiple devices.
 
-To install a configuration file to the device, run:
+To install a configuration file on the device, run:
 
 ```sh
 ./cldevice write-config /path/to/config.json`
@@ -33,8 +33,8 @@ The following environment variables are supported:
 | id | `0`-`254` | The device's ID, used as `src` and `dst` in transmissions | required |
 | name | `str` | The device's name, primarily used for disambiguation in the CLI if multiple devices are connected | optional |
 
-### Installing the firmware
-To install the firmware on a connected device, run:
+### Installing the Cipherlock firmware
+To install the Cipherlock firmware on a connected device, run:
 
 ```sh
 ./cldevice install
