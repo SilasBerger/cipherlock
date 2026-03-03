@@ -10,8 +10,6 @@ from cleo.commands.command import Command
 from cleo.helpers import argument, option
 from cleo.application import Application
 
-# TODO:
-# - support selecting device based on device-id (ideally with (gateway) marker for device_id=0)
 
 MPREMOTE = "./venv/bin/mpremote"
 CONFIG_FILENAME = "config.json"  # Name of the config file on the device.
