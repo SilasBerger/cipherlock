@@ -1,14 +1,14 @@
 # Cipherlock Device
 ## Basic setup
 ### CLI setup
-- Install the appropriate MicroPython firmware on the device (https://github.com/SilasBerger/nodemcu-setup)
-- Create a virtualenv: `python3 -v venv venv`
-- Activate it: `source venv/bin/activate`
-- Install requirements: `pip install -r requirements.txt`
-- Make sure `cldevice.py` is executable: `chmod +x cldevice.py`
+1. Install the appropriate MicroPython firmware on the device (https://github.com/SilasBerger/nodemcu-setup)
+2 Create a virtualenv: `python3 -v venv venv`
+3. Activate it: `source venv/bin/activate`
+4. Install requirements: `pip install -r requirements.txt`
+5. Make sure `cldevice.py` is executable: `chmod +x cldevice.py`
 
 ### Configuration and environment setup
-**Note:** During this initial setup, it is recommended to only connect a single device at to the host computer at a time, to avoid confusion between multiple devices.
+**Note:** During this initial setup, it is recommended to only connect a single device to the host computer at a time, to avoid confusion between multiple devices.
 
 To install a configuration file to the device, run:
 
@@ -20,7 +20,7 @@ Default config files are:
 - `configs/box.json` for Cipherlock boxes
 - `configs/gateway.json` for the LoRa gateway
 
-Then, set up the device's environment using by running:
+Then, set up the device's environment by running:
 
 ```sh
 ./cldevice write-env key=value1 [key2=value2 ...]
