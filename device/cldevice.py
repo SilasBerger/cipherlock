@@ -42,6 +42,13 @@ def run_device_command(device, args=[], capture_output=True):
     ).stdout
 
 
+def read_env_if_available(device_path):
+    try:
+        return json.loads(run_device_command(device_path, ["fs", "cat", f":{ENV_FILENAME}"]).strip())
+    except Exception as e:
+        return {}
+
+
 def list_available_devices():
     try:
         result = subprocess.run(
@@ -52,9 +59,26 @@ def list_available_devices():
         )
 
         entries = result.stdout.strip().split('\n')
-        devices = [entry for entry in entries if entry.startswith(USB_PREFIX_WIN) or entry.startswith(USB_PREFIX_MACOS) or entry.startswith(USB_PREFIX_LINUX)]
+        device_entries = [entry for entry in entries if entry.startswith(USB_PREFIX_WIN) or entry.startswith(USB_PREFIX_MACOS) or entry.startswith(USB_PREFIX_LINUX)]
 
-        # TODO: After moving from device_id to .env file, enrich this result to a list of dicts containing the device_id and device_name as well.
+        devices = []
+        for descriptor in device_entries:
+            device_path = descriptor.split(" ")[0]
+            
+            device = {
+                "path": device_path,
+                "descriptor": descriptor,
+                
+            }
+
+            env = read_env_if_available(device_path)
+            if env:
+                if "id" in env:
+                    device["id"] = env["id"]
+                if "name" in env:
+                    device["name"] = env["name"]        
+
+            devices.append(device)
 
         return devices, None
     except Exception as e:
@@ -69,24 +93,26 @@ def mpremote(args, capture_output=True):
         if error:
             exit_with_error(error_msg=f"Failed to list available devices: {error}.")
         
-        device_paths = [device.split(" ")[0] for device in devices]
         if len(devices) == 0:
             exit_with_error(error_msg="No devices available.")
         
         if len(devices) > 1:
             print("Multiple devices found:")
             for index, device in enumerate(devices):
-                print(f"[{index}] {device}")
+                option_str = device["descriptor"]
+                if "id" in device:
+                    option_str = f"{device["name"]} (id={device["id"]}; {device["path"]})" if "name" in device else f"id={device["id"]} ({device["path"]})"
+                print(f"[{index}] {option_str}")
 
             try:
                 selected_id = int(input("\nSelect device number: "))
                 if selected_id > len(devices) - 1:
                     raise Exception(f"Device number out of range: {selected_id}.")
-                device_path = device_paths[selected_id]
+                device_path = devices[selected_id]["path"]
             except Exception as e:
                 exit_with_error(error_msg=str(e))
         else:
-            device_path = device_paths[0]
+            device_path = devices[0]["path"]
 
     return run_device_command(device_path, args, capture_output)
 
