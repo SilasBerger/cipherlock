@@ -7,7 +7,7 @@ An IoT lockbox for hybrid scavenger hunts.
 ### The basic principle
 Cipherlock consists of three main components: 
 - `device`: The ESP32 / LoRa firmware for both the lockbox controller and LoRa gateway hardware.
-- `api`: The game server which coordinates 
+- `api`: The game server.
 
 The _lockbox_ is a 3D-printed treasure chest that cannot be manually opened from the outside. When players want to open a box, they must first complete a challenge online (to which they might for instance get by scanning a QR code attached to the box). Once the challenge is completed, the corresponding box will receive a signal over a network telling it to open. After players have removed or used its contents, they can manually close it again.
 
